@@ -51,4 +51,9 @@ public class DataContext : DbContext, IDataContext
         base.Remove(entity);
         SaveChanges();
     }
+    public void AddUser<TEntity>(TEntity entity) where TEntity : class
+    {
+        base.Add(entity);
+        SaveChanges();
+    }
 }

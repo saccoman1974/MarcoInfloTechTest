@@ -10,6 +10,37 @@ namespace UserManagement.Data.Tests;
 public class UserControllerTests
 {
     [Fact]
+    public void AddUser_Post_ValidModel_AddsUserAndRedirects()
+    {
+        // Arrange
+        var newUser = new UserListItemViewModel
+        {
+            Forename = "New",
+            Surname = "User",
+            Email = "newuser@example.com",
+            DateOfBirth = DateTime.Today.AddYears(-20),
+            IsActive = true
+        };
+        var mockService = new Mock<IUserService>();
+        var controller = new UsersController(mockService.Object);
+        controller.ModelState.Clear();
+        // Act
+        var result = controller.AddUser(newUser);
+
+        // Assert
+        mockService.Verify(s => s.AddUser(It.Is<User>(u =>
+            u.Forename == "New" &&
+            u.Surname == "User" &&
+            u.Email == "newuser@example.com" &&
+            u.DateOfBirth == newUser.DateOfBirth &&
+            u.IsActive == true
+        )), Times.Once);
+
+        result.Should().BeOfType<RedirectToActionResult>()
+            .Which.ActionName.Should().Be("List");
+    }
+
+    [Fact]
     public void DeleteUserConfirmed_DeletesUserAndRedirects()
     {
         // Arrange

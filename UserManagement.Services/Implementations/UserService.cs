@@ -32,4 +32,8 @@ public class UserService : IUserService
     {
         _dataAccess.Delete(user);
     }
+    public void AddUser(User user)
+    {
+        _dataAccess.Create(user);
+    }
 }

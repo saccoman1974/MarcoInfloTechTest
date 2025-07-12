@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using UserManagement.Models;
 using UserManagement.Services.Domain.Interfaces;
 using UserManagement.Web.Models.Users;
 
@@ -175,5 +176,30 @@ public class UsersController : Controller
             Items = items.ToList()
         };
         return View("~/Views/DeleteUser/DeleteUsers.cshtml", model);
+    }
+    [HttpGet("adduser")]
+    public IActionResult ShowAddUserView(UserListItemViewModel user)
+    {
+        var model = new UserListItemViewModel();
+        return View("~/Views/AddUser/AddUser.cshtml", model);
+    }
+    [HttpPost("adduser")]
+    [ValidateAntiForgeryToken]
+    public IActionResult AddUser(UserListItemViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View("~/Views/CreateUser/CreateUser.cshtml", model);
+        }
+        var user = new User
+        {
+            Forename = model.Forename ?? string.Empty,
+            Surname = model.Surname ?? string.Empty,
+            Email = model.Email ?? string.Empty,
+            DateOfBirth = model.DateOfBirth,
+            IsActive = model.IsActive
+        };
+        _userService.AddUser(user);
+        return RedirectToAction("List");
     }
 }
