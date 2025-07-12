@@ -1,0 +1,41 @@
+@model IEnumerable<UserManagement.Web.Models.Users.LogListItemViewModel>
+
+@{
+    ViewData["Title"] = "Application Logs";
+}
+
+<h2>Application Logs</h2>
+
+@if (!Model.Any())
+{
+    <p>No logs found.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Date/Time</th>
+                    <th>User</th>
+                    <th>Type</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var log in Model)
+                {
+                    <tr>
+                        <td>@log.Timestamp.ToString("g")</td>
+                        <td>@log.UserFullName</td>
+                        <td>@log.ActionType</td>
+                        <td>
+                            <a class="btn btn-sm btn-secondary" asp-controller="Users" asp-action="LogDetails" asp-route-id="@log.Id">Details</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+<a class="btn btn-default mt-3" asp-controller="Home" asp-action="Index">Back to Home</a>

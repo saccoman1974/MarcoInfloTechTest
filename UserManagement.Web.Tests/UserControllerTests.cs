@@ -9,6 +9,10 @@ namespace UserManagement.Data.Tests;
 
 public class UserControllerTests
 {
+    private readonly Mock<IUserService> _userService = new();
+    private readonly Mock<IUserActionLogService> _logService = new();
+    private UsersController CreateController() => new(_userService.Object, _logService.Object);
+
     [Fact]
     public void AddUser_Post_ValidModel_AddsUserAndRedirects()
     {
@@ -21,14 +25,14 @@ public class UserControllerTests
             DateOfBirth = DateTime.Today.AddYears(-20),
             IsActive = true
         };
-        var mockService = new Mock<IUserService>();
-        var controller = new UsersController(mockService.Object);
+        _userService.Reset();
+        var controller = CreateController();
         controller.ModelState.Clear();
         // Act
         var result = controller.AddUser(newUser);
 
         // Assert
-        mockService.Verify(s => s.AddUser(It.Is<User>(u =>
+        _userService.Verify(s => s.AddUser(It.Is<User>(u =>
             u.Forename == "New" &&
             u.Surname == "User" &&
             u.Email == "newuser@example.com" &&
@@ -129,6 +133,31 @@ public class UserControllerTests
     }
 
     [Fact]
+    public void ViewUser_IncludesLogsInViewModel()
+    {
+        // Arrange
+        var user = new User { Id = 5, Forename = "Log", Surname = "Tester", Email = "logtester@example.com", DateOfBirth = DateTime.Today.AddYears(-30), IsActive = true };
+        _userService.Setup(s => s.GetAll()).Returns(new[] { user });
+        var logs = new[]
+        {
+            new UserActionLog { Id = 1, UserId = 5, ActionType = "Login", Timestamp = DateTime.UtcNow },
+            new UserActionLog { Id = 2, UserId = 5, ActionType = "Edit", Timestamp = DateTime.UtcNow }
+        };
+        _logService.Setup(s => s.GetLogsByUserId(5)).Returns(logs);
+        var controller = CreateController();
+
+        // Act
+        var result = controller.ViewUser(5) as ViewResult;
+
+        // Assert
+        result.Should().NotBeNull();
+        var model = result!.Model as UserListItemViewModel;
+        model.Should().NotBeNull();
+        model!.Logs.Should().NotBeNull();
+        model.Logs.Should().BeEquivalentTo(logs);
+    }
+
+    [Fact]
     public void DeleteUser_ReturnsDeleteUserViewWithModel()
     {
         // Arrange
@@ -181,7 +210,4 @@ public class UserControllerTests
 
         return users;
     }
-
-    private readonly Mock<IUserService> _userService = new();
-    private UsersController CreateController() => new(_userService.Object);
 }

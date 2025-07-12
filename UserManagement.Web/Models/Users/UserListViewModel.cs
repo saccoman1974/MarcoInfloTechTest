@@ -17,4 +17,5 @@ public class UserListItemViewModel
     public string? Email { get; set; }
     public bool IsActive { get; set; }
     public DateTime DateOfBirth { get; set; }
+    public IEnumerable<UserActionLog>? Logs { get; set; } // Add logs property
 }
