@@ -155,7 +155,7 @@ public class UsersController : Controller
         var user = _userService.GetAll().FirstOrDefault(u => u.Id == id);
         if (user == null) return NotFound();
         _userService.Delete(user);
-        return RedirectToAction("List");
+        return RedirectToAction("ListUsersToBeDeleted");
     }
 
     [HttpGet("listuserstobedeleted")]

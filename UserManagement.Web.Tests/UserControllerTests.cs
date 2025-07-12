@@ -10,6 +10,23 @@ namespace UserManagement.Data.Tests;
 public class UserControllerTests
 {
     [Fact]
+    public void DeleteUserConfirmed_DeletesUserAndRedirects()
+    {
+        // Arrange
+        var user = new User { Id = 1, Forename = "Delete", Surname = "User", Email = "delete@example.com", DateOfBirth = DateTime.Today.AddYears(-30), IsActive = true };
+        _userService.Setup(s => s.GetAll()).Returns(new[] { user });
+        var controller = CreateController();
+
+        // Act
+        var result = controller.DeleteUserConfirmed(1);
+
+        // Assert
+        _userService.Verify(s => s.Delete(It.Is<User>(u => u.Id == 1)), Times.Once);
+        result.Should().BeOfType<RedirectToActionResult>()
+            .Which.ActionName.Should().Be("ListUsersToBeDeleted");
+    }
+
+    [Fact]
     public void EditUser_Post_ValidModel_UpdatesUserAndRedirects()
     {
         // Arrange
