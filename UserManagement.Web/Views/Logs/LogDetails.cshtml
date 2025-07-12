@@ -1,0 +1,20 @@
+@model UserManagement.Web.Models.Users.LogDetailsViewModel
+
+@{
+    ViewData["Title"] = "Log Details";
+}
+
+<h2>Log Details</h2>
+<div class="card mb-5" style="max-width: 400px;">
+    <div class="card-body">
+        <h4 class="card-title">Log #@Model.Id</h4>
+        <p class="card-text"><strong>User:</strong> @Model.UserFullName</p>
+        @if (!string.IsNullOrEmpty(Model.UserEmail))
+        {
+            <p class="card-text"><strong>User Email:</strong> @Model.UserEmail</p>
+        }
+        <p class="card-text"><strong>Type:</strong> @Model.ActionType</p>
+        <p class="card-text"><strong>Date/Time:</strong> @Model.Timestamp.ToString("F")</p>
+    </div>
+</div>
+<a class="btn btn-default mt-3" asp-controller="Users" asp-action="Logs">Back to Logs</a>

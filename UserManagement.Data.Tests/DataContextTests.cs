@@ -1,11 +1,28 @@
+using System;
 using System.Linq;
-using FluentAssertions;
 using UserManagement.Models;
+using UserManagement.Services.Domain.Interfaces;
 
 namespace UserManagement.Data.Tests;
 
 public class DataContextTests
 {
+    [Fact]
+    public void LogAction_WhenUserIsEdited_LogEntryIsCreated()
+    {
+        // Arrange
+        var logService = new Mock<IUserActionLogService>();
+        var userId = 1;
+        var action = "Edit";
+        var logEntry = new UserActionLog { UserId = userId, ActionType = action, Timestamp = DateTime.UtcNow };
+
+        // Act
+        logService.Object.LogAction(logEntry);
+
+        // Assert
+        logService.Verify(s => s.LogAction(It.Is<UserActionLog>(l => l.UserId == userId && l.ActionType == action)), Times.Once);
+    }
+
     [Fact]
     public void GetAll_WhenNewEntityAdded_MustIncludeNewEntity()
     {

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using UserManagement.Services.Domain.Interfaces;
 using Westwind.AspNetCore.Markdown;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,9 +11,9 @@ builder.Services
     .AddDomainServices()
     .AddMarkdown()
     .AddControllersWithViews();
+builder.Services.AddSingleton<IUserActionLogService, UserActionLogService>();
 
 var app = builder.Build();
-
 app.UseMarkdown();
 
 app.UseHsts();

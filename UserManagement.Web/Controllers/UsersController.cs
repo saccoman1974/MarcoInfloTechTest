@@ -1,7 +1,9 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using UserManagement.Models;
 using UserManagement.Services.Domain.Interfaces;
 using UserManagement.Web.Models.Users;
+using Microsoft.AspNetCore.Mvc;
 
 namespace UserManagement.WebMS.Controllers;
 
@@ -9,7 +11,13 @@ namespace UserManagement.WebMS.Controllers;
 public class UsersController : Controller
 {
     private readonly IUserService _userService;
-    public UsersController(IUserService userService) => _userService = userService;
+    private readonly IUserActionLogService _logService;
+
+    public UsersController(IUserService userService, IUserActionLogService logService)
+    {
+        _userService = userService;
+        _logService = logService;
+    }
 
     [HttpGet]
     public ViewResult List()
@@ -79,6 +87,17 @@ public class UsersController : Controller
     {
         var user = _userService.GetAll().FirstOrDefault(u => u.Id == id);
         if (user == null) return NotFound();
+        // Log the view action
+        _logService.LogAction(new UserActionLog
+        {
+            UserId = (int)user.Id,
+            ActionType = "View",
+            Timestamp = DateTime.UtcNow,
+            UserForename = user.Forename,
+            UserSurname = user.Surname,
+            UserEmail = user.Email
+        });
+        var logs = _logService.GetLogsByUserId((int)user.Id);
         var model = new UserListItemViewModel
         {
             Id = user.Id,
@@ -86,7 +105,8 @@ public class UsersController : Controller
             Surname = user.Surname,
             Email = user.Email,
             DateOfBirth = user.DateOfBirth,
-            IsActive = user.IsActive
+            IsActive = user.IsActive,
+            Logs = logs
         };
         return View("~/Views/ViewUser/ViewUser.cshtml", model);
     }
@@ -129,6 +149,17 @@ public class UsersController : Controller
 
         _userService.Update(user);
 
+        // Log the edit action
+        _logService.LogAction(new UserActionLog
+        {
+            UserId = (int)user.Id,
+            ActionType = "Edit",
+            Timestamp = DateTime.UtcNow,
+            UserForename = user.Forename,
+            UserSurname = user.Surname,
+            UserEmail = user.Email
+        });
+
         return RedirectToAction("List");
     }
 
@@ -156,7 +187,20 @@ public class UsersController : Controller
         var user = _userService.GetAll().FirstOrDefault(u => u.Id == id);
         if (user == null) return NotFound();
         _userService.Delete(user);
-        return RedirectToAction("ListUsersToBeDeleted");
+        // Log the delete action
+        _logService.LogAction(new UserActionLog
+        {
+            UserId = (int)user.Id,
+            ActionType = "Delete",
+            Timestamp = DateTime.UtcNow,
+            UserForename = user.Forename,
+            UserSurname = user.Surname,
+            UserEmail = user.Email
+        });
+        // Check if the request came from the Delete Users view
+        if (Request.Form["returnToDeleteList"] == "true")
+            return RedirectToAction("ListUsersToBeDeleted");
+        return RedirectToAction("List");
     }
 
     [HttpGet("listuserstobedeleted")]
@@ -177,12 +221,14 @@ public class UsersController : Controller
         };
         return View("~/Views/DeleteUser/DeleteUsers.cshtml", model);
     }
+
     [HttpGet("adduser")]
     public IActionResult ShowAddUserView(UserListItemViewModel user)
     {
         var model = new UserListItemViewModel();
         return View("~/Views/AddUser/AddUser.cshtml", model);
     }
+
     [HttpPost("adduser")]
     [ValidateAntiForgeryToken]
     public IActionResult AddUser(UserListItemViewModel model)
@@ -201,5 +247,41 @@ public class UsersController : Controller
         };
         _userService.AddUser(user);
         return RedirectToAction("List");
+    }
+
+    [HttpGet("logs")]
+    public IActionResult Logs()
+    {
+        var logs = _logService.GetAllLogs()
+            .OrderByDescending(l => l.Timestamp)
+            .Select(l => new LogListItemViewModel
+            {
+                Id = l.Id,
+                UserFullName = !string.IsNullOrEmpty(l.UserForename) && !string.IsNullOrEmpty(l.UserSurname)
+                    ? l.UserForename + " " + l.UserSurname
+                    : "Unknown User",
+                ActionType = l.ActionType,
+                Timestamp = l.Timestamp
+            })
+            .ToList();
+        return View("~/Views/Logs/Logs.cshtml", logs);
+    }
+
+    [HttpGet("logdetails/{id}")]
+    public IActionResult LogDetails(int id)
+    {
+        var log = _logService.GetAllLogs().FirstOrDefault(l => l.Id == id);
+        if (log == null) return NotFound();
+        var detailsModel = new LogDetailsViewModel
+        {
+            Id = log.Id,
+            UserFullName = !string.IsNullOrEmpty(log.UserForename) && !string.IsNullOrEmpty(log.UserSurname)
+                ? log.UserForename + " " + log.UserSurname
+                : "Unknown User",
+            UserEmail = log.UserEmail,
+            ActionType = log.ActionType,
+            Timestamp = log.Timestamp
+        };
+        return View("~/Views/Logs/LogDetails.cshtml", detailsModel);
     }
 }

@@ -9,5 +9,34 @@
         <p class="card-text"><strong>Account Active:</strong> @(Model.IsActive ? "Yes" : "No")</p>
     </div>
 </div>
+
+@if (Model.Logs != null && Model.Logs.Any())
+{
+    <h3 class="mt-4">User Action Logs</h3>
+    <div class="table-responsive">
+        <table class="table table-bordered table-sm">
+            <thead>
+                <tr>
+                    <th>Date/Time</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var log in Model.Logs.OrderByDescending(l => l.Timestamp))
+                {
+                    <tr>
+                        <td>@log.Timestamp.ToString("g")</td>
+                        <td>@log.ActionType</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <p class="mt-4 text-muted">No actions logged for this user.</p>
+}
+
 <a class="btn btn-default mt-3" asp-controller="Users" asp-action="List">Back to List</a>
 

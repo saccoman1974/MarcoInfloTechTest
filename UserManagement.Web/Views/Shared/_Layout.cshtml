@@ -25,12 +25,15 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="Users" asp-action="List">Users</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Users" asp-action="Logs">Logs</a>
+                        </li>
                     </ul>
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
+    <div class="container" style="padding-bottom: 5rem;">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>

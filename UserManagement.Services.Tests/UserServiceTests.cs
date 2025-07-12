@@ -11,13 +11,15 @@ namespace UserManagement.Data.Tests
 {
     public class UserServiceTests
     {
+        private readonly Mock<IUserActionLogService> _logService = new();
+
         [Fact]
         public void ListActive_ReturnsListView()
         {
             // Arrange
             var mockService = new Mock<IUserService>();
             mockService.Setup(s => s.FilterByActive(true)).Returns(new List<User>());
-            var controller = new UsersController(mockService.Object);
+            var controller = new UsersController(mockService.Object, _logService.Object);
 
             // Act
             var result = controller.ListActive();
@@ -34,7 +36,7 @@ namespace UserManagement.Data.Tests
             // Arrange
             var mockService = new Mock<IUserService>();
             mockService.Setup(s => s.FilterByActive(false)).Returns(new List<User>());
-            var controller = new UsersController(mockService.Object);
+            var controller = new UsersController(mockService.Object, _logService.Object);
 
             // Act
             var result = controller.ListActive();
