@@ -18,6 +18,7 @@ public class UsersController : Controller
             Id = p.Id,
             Forename = p.Forename,
             Surname = p.Surname,
+            DateOfBirth = p.DateOfBirth,
             Email = p.Email,
             IsActive = p.IsActive
         });
@@ -28,5 +29,47 @@ public class UsersController : Controller
         };
 
         return View(model);
+    }
+
+    [HttpGet("active")]
+    public ViewResult ListActive()
+    {
+        var items = _userService.FilterByActive(true).Select(p => new UserListItemViewModel
+        {
+            Id = p.Id,
+            Forename = p.Forename,
+            Surname = p.Surname,
+            Email = p.Email,
+            IsActive = p.IsActive
+        });
+
+        var model = new UserListViewModel
+        {
+            Items = items.ToList()
+        };
+
+        // Always return the main List view
+        return View("List", model);
+    }
+
+    [HttpGet("nonactive")]
+    public ViewResult ListNonActive()
+    {
+        var items = _userService.FilterByActive(false).Select(p => new UserListItemViewModel
+        {
+            Id = p.Id,
+            Forename = p.Forename,
+            Surname = p.Surname,
+            Email = p.Email,
+            IsActive = p.IsActive
+        });
+
+        var model = new UserListViewModel
+        {
+            Items = items.ToList()
+        };
+
+        // Always return the main List view
+        return View("List", model);
     }
 }
